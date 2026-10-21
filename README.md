@@ -1,6 +1,6 @@
 # randaladams.github.io
 
-Website for Adams Elite games, published with GitHub Pages.
+Website for adamselite.com games, published with GitHub Pages.
 
 | Path | What it is |
 |---|---|
