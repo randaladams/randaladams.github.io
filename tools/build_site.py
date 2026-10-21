@@ -98,7 +98,7 @@ APPS = [
             "<strong>Motion and orientation sensors</strong> to turn the compass. Readings are used live and never stored or sent anywhere.",
         ],
         ads="a banner and an occasional full-screen ad",
-        consent=None,
+        consent="the app asks for your consent before personalized ads are shown; you can change your choice at any time with <strong>Privacy settings</strong> at the bottom of the main screen",
         purchase=("Pro", "remove ads and unlock extra places"),
     ),
     dict(
