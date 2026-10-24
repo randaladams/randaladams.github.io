@@ -9,7 +9,7 @@ Website for adamselite.com games and apps, published with GitHub Pages at https:
 | `/apps/<app>/` | An app's page |
 | `/apps/<app>/privacy/` | That app's privacy policy (use this URL in the Play Console) |
 
-Apps: trench-run, horizon-run, stop-time, how-far-is-graceland, inner-circle, tuts-trumpets.
+Apps: sling-slam, trench-run, horizon-run, stop-time, how-far-is-graceland, inner-circle, tuts-trumpets.
 
 ## Editing
 

@@ -21,6 +21,27 @@ GOOGLE_PRIVACY = "https://policies.google.com/privacy"
 
 APPS = [
     dict(
+        slug="sling-slam", name="Sling Slam", package="com.adamselite.slingslam",
+        icon="sling-slam-icon.png", repo="slingslam",
+        effective="October 23, 2026",
+        tagline="Lob boulders with a giant sling to smash the rocks rolling at your wall.",
+        features=[
+            "Pull back on the sling to aim and set power; a side view shows every shot's arc.",
+            "Smash rolling boulders, jagged rocks and tumbling rock clusters before they reach your shield.",
+            "Each level ends with a stone golem boss that soaks up stray stones and throws them back.",
+            "Chained split shots, sling upgrades, power cells and gold.",
+            "Scoreboard of your last 20 runs and a tutorial.",
+        ],
+        local_data="your high score, your last 20 runs (score, level reached and whether you used a continue), your sound setting and whether you finished the tutorial",
+        erase="by clearing the app's data in your phone's settings, or by uninstalling the app",
+        device=[
+            "<strong>Vibration</strong> for short haptic feedback, such as when a rock hits your wall.",
+        ],
+        ads="a banner at the top of the screen, an occasional full-screen ad between games, and an optional ad you can choose to watch to continue after your shield runs out",
+        consent="the game asks for your consent before personalized ads are shown",
+        purchase=None,
+    ),
+    dict(
         slug="trench-run", name="Trench Run", package="com.adamselite.trenchrun",
         icon="trench-run-icon.png", repo="Trench-Run",
         tagline="Tilt your phone to fly a fighter down a narrow trench at full speed.",
@@ -193,14 +214,14 @@ def privacy_page(a):
     if any("Location" in d for d in a["device"]):
         short.append("Your location is used only on your device, only when you ask, and is never sent to us.")
     if ads:
-        short.append("The free version shows ads from Google AdMob. Google may collect device information to serve and measure those ads, as described below.")
+        short.append(("The free version shows" if purchase else "The app shows") + " ads from Google AdMob. Google may collect device information to serve and measure those ads, as described below.")
     if purchase:
         short.append(f"The optional {html.escape(purchase[0])} purchase is handled by Google Play. We never see your payment details.")
     if offline:
         short.append("The app doesn't connect to the internet, shows no ads and has no purchases.")
 
     s = [f"""<h1>{n} Privacy Policy</h1>
-<p class="lead">Effective {EFFECTIVE}</p>
+<p class="lead">Effective {a.get('effective', EFFECTIVE)}</p>
 <p>This policy explains what information the {n} app for Android (<code>{a['package']}</code>, "the app") uses, and why. The app is published by {PUBLISHER} ("we", "us"). If you have questions, contact <a href="mailto:{CONTACT}">{CONTACT}</a>.</p>
 <h2>The short version</h2>
 <ul>{''.join(f'<li>{x}</li>' for x in short)}</ul>"""]
@@ -218,14 +239,15 @@ def privacy_page(a):
     if offline:
         dev.append("<strong>No internet access</strong>: the app does not request internet permission, so it cannot send anything off your device.")
     else:
-        dev.append("<strong>Internet access</strong> is used only to load ads in the free version and to process purchases through Google Play.")
+        dev.append("<strong>Internet access</strong> is used only to load ads in the free version and to process purchases through Google Play." if purchase
+                   else "<strong>Internet access</strong> is used only to load ads.")
     s.append("<h2>Device features the app uses</h2>\n<ul>" + "".join(f"<li>{d}</li>" for d in dev) + "</ul>")
 
     if ads:
         consent = (f"<p>Where required by law (for example in the European Economic Area, the UK and Switzerland), {a['consent']}.</p>"
                    if a.get("consent") else "")
-        s.append(f"""<h2>Advertising (free version)</h2>
-<p>The free version shows ads from Google AdMob, a service of Google LLC: {a['ads']}. To deliver, measure and limit ads, and to prevent fraud, Google may collect and process information such as your device's advertising ID and other device identifiers, your IP address and the approximate location derived from it, device and app information, and how you interact with ads. This information is collected by Google, not by us. Learn more in <a href="{GOOGLE_PARTNERS}">How Google uses information from sites or apps that use its services</a> and the <a href="{GOOGLE_PRIVACY}">Google Privacy Policy</a>.</p>
+        s.append(f"""<h2>Advertising{' (free version)' if purchase else ''}</h2>
+<p>{'The free version shows' if purchase else 'The app shows'} ads from Google AdMob, a service of Google LLC: {a['ads']}. To deliver, measure and limit ads, and to prevent fraud, Google may collect and process information such as your device's advertising ID and other device identifiers, your IP address and the approximate location derived from it, device and app information, and how you interact with ads. This information is collected by Google, not by us. Learn more in <a href="{GOOGLE_PARTNERS}">How Google uses information from sites or apps that use its services</a> and the <a href="{GOOGLE_PRIVACY}">Google Privacy Policy</a>.</p>
 {consent}<p>You can reset your advertising ID or opt out of ad personalization in your device's settings (Settings &rarr; Google &rarr; Ads, or Settings &rarr; Privacy &rarr; Ads, depending on your device).</p>""")
         if purchase:
             s.append(f"<p>Once you own {html.escape(purchase[0])}, the app no longer shows ads.</p>")
