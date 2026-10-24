@@ -38,7 +38,7 @@ APPS = [
             "<strong>Vibration</strong> for short haptic feedback, such as when a rock hits your wall.",
         ],
         ads="a banner at the top of the screen, an occasional full-screen ad between games, and an optional ad you can choose to watch to continue after your shield runs out",
-        consent="the game asks for your consent before personalized ads are shown",
+        consent="the game asks for your consent before personalized ads are shown; you can change your choice later with <strong>Privacy settings</strong> on the Scoreboard screen",
         purchase=None,
     ),
     dict(
