@@ -23,6 +23,7 @@ APPS = [
     dict(
         slug="ophelia", name="Ophelia", package="com.adamselite.ophelia",
         icon="ophelia-icon.png", repo="Ophelia",
+        play=True,  # also playable in the browser at /apps/ophelia/play/ (the game's own index.html)
         effective="October 30, 2026",
         tagline="Grandma's one-deck solitaire: clear the line by making 13s and pairs from either end.",
         features=[
@@ -198,7 +199,7 @@ def page(title, desc, body, nav):
 def home():
     cards = "\n".join(f"""<a class="card" href="/apps/{a['slug']}/">
   <img src="/assets/{a['icon']}" alt="{html.escape(a['name'])} icon" width="96" height="96">
-  <div><h3>{html.escape(a['name'])}</h3><p>{html.escape(a['tagline'])}</p><span class="tag">Android</span></div>
+  <div><h3>{html.escape(a['name'])}</h3><p>{html.escape(a['tagline'])}</p><span class="tag">Android</span>{'<span class="tag web">Web</span>' if a.get('play') else ''}</div>
 </a>""" for a in APPS)
     body = f"""<h1>Games &amp; apps</h1>
 <p class="lead">Mobile games and apps by adamselite.com.</p>
@@ -210,11 +211,20 @@ def home():
     return page("adamselite.com", "Mobile games and apps by adamselite.com.", body,
                 [("Apps", "/"), ("Support", f"mailto:{CONTACT}")])
 
+def play_buttons(a):
+    if not a.get("play"):
+        return ""
+    href = f"/apps/{a['slug']}/play/"
+    return f"""<p class="actions"><a class="button" href="{href}">Play in your browser</a>
+<a class="button ghost" href="{href}index.html" download="{html.escape(a['name'])}.html">Download to play offline</a></p>
+<p class="note">The download is the whole game in one file. Open it in any browser, no internet needed.</p>
+"""
+
 def app_page(a):
     feats = "\n".join(f"<li>{html.escape(f)}</li>" for f in a["features"])
     body = f"""<div class="hero"><img src="/assets/{a['icon']}" alt="{html.escape(a['name'])} icon" width="128" height="128">
 <div><h1>{html.escape(a['name'])}</h1><p class="lead">{html.escape(a['tagline'])}</p></div></div>
-<ul>
+{play_buttons(a)}<ul>
 {feats}
 </ul>
 <h2>Support</h2>
@@ -275,6 +285,10 @@ def privacy_page(a):
     if purchase:
         s.append(f"""<h2>Purchases</h2>
 <p>The optional {html.escape(purchase[0])} upgrade is sold through Google Play to {purchase[1]}. Google processes the payment and tells the app only whether you own it, so it can be restored after a reinstall. We don't receive your name, payment card or billing details. See the <a href="{GOOGLE_PRIVACY}">Google Privacy Policy</a>.</p>""")
+
+    if a.get("play"):
+        s.append(f"""<h2>Playing in a web browser</h2>
+<p>{n} can also be played in a web browser at <a href="/apps/{a['slug']}/play/">adamselite.com/apps/{a['slug']}/play/</a>, or from a copy of that page saved on your computer. The browser version works the same way: your win/loss record and settings are saved only in your browser's own storage on your device, and nothing is sent to us. You can erase them by clearing this site's data in your browser. The website is hosted by GitHub Pages, which, like any web host, may log technical details of requests to load the page, such as your IP address; see the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>. The game page loads nothing from any other site.</p>""")
 
     s.append(f"""<h2>Children</h2>
 <p>The app is not directed to children under 13, and we don't knowingly collect personal information from children. If you believe a child has provided personal information through the app, contact us and we'll help address it.</p>

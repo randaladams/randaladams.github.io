@@ -25,3 +25,6 @@ Notes:
   repositories (for example `/StopTime/privacy-policy.html`), which still work.
 - `/trench-run/` redirects to `/apps/trench-run/`.
 - `.nojekyll` turns off Jekyll processing; `CNAME` holds the custom domain.
+- `/apps/ophelia/play/index.html` is the Ophelia game itself, copied from `app/src/main/assets/index.html` in the
+  Ophelia repository. Copy it again after changing the game. Apps with `play=True` in `APPS` get Play and
+  Download buttons, a Web tag on the home page, and a browser section in their privacy policy.
