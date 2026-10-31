@@ -21,6 +21,26 @@ GOOGLE_PRIVACY = "https://policies.google.com/privacy"
 
 APPS = [
     dict(
+        slug="ophelia", name="Ophelia", package="com.adamselite.ophelia",
+        icon="ophelia-icon.png", repo="Ophelia",
+        effective="October 30, 2026",
+        tagline="Grandma's one-deck solitaire: clear the line by making 13s and pairs from either end.",
+        features=[
+            "Turn over one card at a time and pair it with the top or bottom card of the line: two cards that make 13, or a matching pair.",
+            "Kings make 13 on their own. Empty the line before the deck runs out to win.",
+            "Tap or drag cards to pair them; the phone buzzes when a match is waiting.",
+            "A card count chart, a review of any matches you missed, and a Real deck mode with no hints.",
+            "Plays sideways or upright, on phones and tablets.",
+        ],
+        local_data="your win/loss record and your settings (Real deck, Card count and how the screen turns)",
+        erase="by clearing the app's data in your phone's settings, or by uninstalling the app",
+        device=[
+            "<strong>Vibration</strong> for a short buzz when a match is waiting. <strong>Real deck</strong> in the settings turns it off.",
+        ],
+        offline=True,
+        ads=None, consent=None, purchase=None,
+    ),
+    dict(
         slug="sling-slam", name="Sling Slam", package="com.adamselite.slingslam",
         icon="sling-slam-icon.png", repo="slingslam",
         effective="October 23, 2026",
