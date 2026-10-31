@@ -23,7 +23,6 @@ and commit. Pushing to `main` publishes the site.
 Notes:
 - Apps live under `/apps/` so they never collide with older GitHub Pages sites in the individual app
   repositories (for example `/StopTime/privacy-policy.html`), which still work.
-- `/trench-run/` redirects to `/apps/trench-run/`.
 - `.nojekyll` turns off Jekyll processing; `CNAME` holds the custom domain.
 - `/apps/ophelia/play/index.html` is the Ophelia game itself, copied from `app/src/main/assets/index.html` in the
   Ophelia repository. Copy it again after changing the game. Apps with `play=True` in `APPS` get Play and

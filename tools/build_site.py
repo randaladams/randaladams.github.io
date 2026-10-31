@@ -320,7 +320,4 @@ if __name__ == "__main__":
     for a in APPS:
         write(f"apps/{a['slug']}/index.html", app_page(a))
         write(f"apps/{a['slug']}/privacy/index.html", privacy_page(a))
-    # Trench Run's first pages lived at /trench-run/; keep those addresses working.
-    write("trench-run/index.html", redirect("/apps/trench-run/"))
-    write("trench-run/privacy/index.html", redirect("/apps/trench-run/privacy/"))
     print("built", len(APPS), "apps")
