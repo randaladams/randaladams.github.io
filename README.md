@@ -24,6 +24,8 @@ Notes:
 - Apps live under `/apps/` so they never collide with older GitHub Pages sites in the individual app
   repositories (for example `/StopTime/privacy-policy.html`), which still work.
 - `.nojekyll` turns off Jekyll processing; `CNAME` holds the custom domain.
+- `/tv/index.html` is a hand-written download page for the Ophelia Fire TV app (type adamselite.com/tv in the
+  Fire TV's Downloader app). It links to the newest Ophelia-FireTV.apk release.
 - `/apps/ophelia/play/index.html` is the Ophelia game itself, copied from `app/src/main/assets/index.html` in the
   Ophelia repository. Copy it again after changing the game. Apps with `play=True` in `APPS` get Play and
   Download buttons, a Web tag on the home page, and a browser section in their privacy policy.
