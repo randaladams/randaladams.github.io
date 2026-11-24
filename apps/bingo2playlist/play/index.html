@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Bingo2Playlist</title>
+<style>
+/* Bingo hall: paper card, black print, magenta + teal dauber ink. Phone-first, one column. */
+:root{--bg:#f6f3ee;--paper:#fff;--ink:#18171b;--mute:#5d5964;--soft:#e7e2dc;--daub:#ff2e88;--daub2:#0a9fba;--ok:#0b7a45}
+@media(prefers-color-scheme:dark){:root{--bg:#121114;--paper:#1d1b20;--ink:#f1eef2;--mute:#a9a3ad;--soft:#2e2b33;--daub2:#2cc5df;--ok:#4cd38b}}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--ink);color:var(--bg);display:flex;align-items:center;gap:8px;padding:10px 12px;min-height:56px}
+header h1{font-size:20px;font-weight:900;margin:0;flex:1;letter-spacing:.5px}
+header button{background:transparent;border:0;color:inherit;font-size:22px;min-width:44px;min-height:44px}
+main{padding:16px 14px 120px;max-width:720px;margin:0 auto}
+h2{font-size:19px;font-weight:800;margin:22px 0 8px}
+.letters{display:grid;grid-template-columns:repeat(5,1fr);text-align:center;font-weight:900;font-size:40px;line-height:1;margin:6px 0 4px}
+.letters span:nth-child(odd){color:var(--daub)}.letters span:nth-child(even){color:var(--daub2)}
+.lede{color:var(--mute);margin:0 0 14px}
+button,.btn{font:600 16px system-ui,Roboto,sans-serif;min-height:48px;padding:0 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:999px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button.primary{background:var(--daub);border-color:var(--daub);color:#fff}
+button.big{width:100%;min-height:60px;font-size:18px}
+button.small{min-height:36px;padding:0 12px;font-size:14px;border-width:1px}
+button:disabled{opacity:.45}
+.stack{display:grid;gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:var(--paper);border:1px solid var(--soft);border-radius:10px;padding:12px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}.item .grow{flex:1 1 100%}.item .acts{display:flex;gap:8px;flex:1 1 100%}.item .acts button{flex:1}.item .acts .del{flex:0 0 auto}
+.dlg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:grid;place-items:center;z-index:40;padding:20px}.dlg>div{background:var(--bg);border-radius:16px;padding:20px;width:100%;max-width:420px}.dlg h3{margin:0 0 6px;font-size:20px}.dlg p{margin:0 0 16px;color:var(--mute)}.dlg .two button.danger{background:#c8102e;border-color:#c8102e;color:#fff}
+.item .grow{flex:1}
+.item b{display:block}
+.item small{color:var(--mute)}
+.empty{padding:22px;text-align:center;color:var(--mute);border:2px dashed var(--soft);border-radius:10px}
+input[type=text],input[type=password],select,textarea{width:100%;font:16px system-ui,Roboto,sans-serif;padding:10px 12px;border:2px solid var(--soft);border-radius:8px;background:var(--paper);color:var(--ink)}
+label.f{display:block;font-weight:600;margin:12px 0 4px}
+.cards{display:flex;gap:8px;overflow-x:auto;padding:4px 0}
+.card{flex:none;width:92px;text-align:center;font-size:12px;color:var(--mute)}
+.card img,.card .ph{width:92px;height:92px;object-fit:cover;border-radius:8px;border:2px solid var(--soft);display:block;background:var(--soft)}
+.card.done img{border-color:var(--ok)}.card.err img{border-color:var(--daub)}
+.card .ph{display:grid;place-items:center}
+.spin{width:26px;height:26px;border:3px solid var(--mute);border-top-color:transparent;border-radius:50%;animation:s 1s linear infinite}
+@keyframes s{to{transform:rotate(360deg)}}
+.song{display:grid;grid-template-columns:28px 1fr auto;gap:4px 8px;align-items:center;background:var(--paper);border-bottom:1px solid var(--soft);padding:8px 6px}
+.song:first-child{border-radius:10px 10px 0 0}.song:last-child{border-radius:0 0 10px 10px;border-bottom:0}
+.song .n{color:var(--mute);font-size:13px;text-align:right;grid-row:span 2}
+.song input{border:1px solid transparent;background:transparent;padding:4px 6px;border-radius:6px}
+.song input:focus{border-color:var(--soft)}
+.song .t{font-weight:700}
+.song .acts{grid-row:span 2;display:flex;flex-direction:column;gap:4px}
+.song .tag{font-size:11px;color:var(--daub2);padding-left:6px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-top:1px solid var(--soft);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:6}
+.bar button{flex:1}
+.count{font-weight:800}.count em{font-style:normal;color:var(--daub)}
+.note{font-size:14px;color:var(--mute)}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:20}
+.sheet>div{background:var(--bg);width:100%;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 6px;font-size:20px}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.seg button{min-height:40px;font-size:14px}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:opacity .2s;z-index:30;pointer-events:none;width:max-content;max-width:90vw;text-align:center;border-radius:16px}
+.toast.show{opacity:1;pointer-events:auto}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <button id="backBtn" aria-label="Back" hidden>←</button>
+  <h1 id="title">BINGO2PLAYLIST</h1>
+  <button id="setBtn" aria-label="Settings">⚙</button>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section id="home">
+    <div class="letters" aria-hidden="true"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+    <p class="lede">Photograph your music bingo cards, and the songs become one playlist with duplicates removed, ready to share or import into Spotify.</p>
+    <button class="primary big" id="newBatch">Start a new batch</button>
+    <div id="resume" hidden style="margin-top:10px"><button class="big" id="resumeBtn">Continue unfinished batch</button></div>
+    <h2>Saved playlists</h2>
+    <div id="saved" class="stack"></div>
+  </section>
+
+  <!-- BATCH -->
+  <section id="batch" hidden>
+    <label class="f" for="bname">Batch name</label>
+    <input type="text" id="bname" autocomplete="off">
+    <div class="two" style="margin-top:14px">
+      <button class="primary" id="camBtn">📷 Camera</button>
+      <button id="galBtn">🖼 Gallery</button>
+    </div>
+    <p class="note" id="camNote">The camera reopens after each shot so you can snap card after card. Press back in the camera when the batch is done.</p>
+    <div class="cards" id="cards"></div>
+    <h2><span class="count" id="count">No songs yet</span></h2>
+    <div id="songs"></div>
+    <div class="two" style="margin-top:10px">
+      <button class="small" id="addSong">+ Add a song</button>
+      <button class="small" id="sortBtn">Sort A–Z</button>
+    </div>
+  </section>
+</main>
+
+<div class="bar" id="bar" hidden>
+  <button id="discard">Discard</button>
+  <button class="primary" id="finish">Save &amp; share</button>
+</div>
+
+<!-- share sheet -->
+<div class="sheet" id="shareSheet" hidden><div>
+  <h3 id="shTitle">Playlist saved</h3>
+  <p class="note" id="shSub"></p>
+  <div class="seg" role="group" aria-label="Format">
+    <button data-f="csv" aria-pressed="true">CSV for Spotify import</button>
+    <button data-f="txt" aria-pressed="false">Text list</button>
+    <button data-f="m3u" aria-pressed="false">M3U</button>
+  </div>
+  <div class="stack">
+    <button class="primary big" id="shShare">Share…</button>
+    <div class="two"><button id="shSave">Save to Files</button><button id="shCopy">Copy</button></div>
+    <button id="shTmm">Open TuneMyMusic (import to Spotify)</button>
+    <p class="note">To make the Spotify playlist: in TuneMyMusic or Soundiiz, choose “Upload file”, pick the CSV you saved or shared, then choose Spotify as the destination.</p>
+    <button id="shClose">Done</button>
+  </div>
+</div></div>
+
+<!-- settings sheet -->
+<div class="sheet" id="setSheet" hidden><div>
+  <h3>Settings</h3>
+  <label class="f" for="engine">How to read cards</label>
+  <select id="engine">
+    <option value="device">On this phone (free, works offline)</option>
+    <option value="claude">Claude (much better through dauber ink, needs API key)</option>
+  </select>
+  <p class="note">On-phone reading can miss words covered by ink, so check the list after each card. Claude reading uses your own Anthropic API key and sends card photos to Anthropic.</p>
+  <div id="claudeOpts">
+    <label class="f" for="apikey">Anthropic API key</label>
+    <input type="password" id="apikey" placeholder="sk-ant-…" autocomplete="off">
+    <label class="f" for="model">Model</label>
+    <input type="text" id="model" autocomplete="off">
+  </div>
+  <p class="note" id="ver"></p>
+  <button class="primary big" id="setClose" style="margin-top:12px">Save settings</button>
+</div></div>
+
+<div class="dlg" id="dlg" hidden role="dialog" aria-modal="true" aria-labelledby="dlgT"><div>
+  <h3 id="dlgT"></h3><p id="dlgM"></p>
+  <div class="two"><button id="dlgNo">Cancel</button><button class="danger" id="dlgYes">OK</button></div>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const NATIVE=!!window.Android;
+// In the Android app, window.Android is the native bridge. In a browser, webBridge() provides the same calls.
+const A=window.Android||webBridge();
+function webBridge(){
+  const blobs={};let worker=null,workerP=null,q=Promise.resolve();
+  const mk=(cap,multi)=>{const i=document.createElement('input');i.type='file';i.accept='image/*';if(cap)i.setAttribute('capture','environment');i.multiple=!!multi;i.hidden=true;
+    i.addEventListener('change',()=>{[...i.files].forEach(take);i.value='';});document.body.appendChild(i);return i;};
+  const cam=mk(true,false),gal=mk(false,true);
+  const uid8=()=>Math.random().toString(36).slice(2,10);
+  async function take(file){const id=uid8();window.onImageStart(id);
+    try{const bmp=await createImageBitmap(file,{imageOrientation:'from-image'});
+      const fit=(m)=>{const sc=Math.min(1,m/Math.max(bmp.width,bmp.height));const c=document.createElement('canvas');c.width=Math.round(bmp.width*sc);c.height=Math.round(bmp.height*sc);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);return c;};
+      const big=fit(2000);blobs[id]={canvas:big,jpeg:await new Promise(r=>fit(1600).toBlob(r,'image/jpeg',0.85))};
+      window.onImage({id,thumb:fit(160).toDataURL('image/jpeg',0.7),w:big.width,h:big.height,lines:null});
+    }catch(e){window.onImageError(id,'Couldn’t open that photo');}}
+  function loadTesseract(){if(workerP)return workerP;
+    workerP=new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+      sc.onload=async()=>{try{worker=await Tesseract.createWorker('eng');await worker.setParameters({tessedit_pageseg_mode:'11'});res(worker);}catch(e){rej(e);}};
+      sc.onerror=()=>rej(new Error('Couldn’t load the text reader. Check your connection.'));document.head.appendChild(sc);});
+    workerP.catch(()=>{workerP=null;});return workerP;}
+  // Drop coloured dauber ink: use the brightest channel, so pink/teal ink turns near-white while black print stays dark.
+  function inkless(src){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const x=c.getContext('2d');x.drawImage(src,0,0);
+    const im=x.getImageData(0,0,c.width,c.height),d=im.data;for(let i=0;i<d.length;i+=4){const v=Math.max(d[i],d[i+1],d[i+2]);d[i]=d[i+1]=d[i+2]=v;}x.putImageData(im,0,0);return c;}
+  return{
+    pickImages(){gal.click();},
+    takePhoto(){cam.click();},
+    stopCamera(){},
+    forget(id){delete blobs[id];},
+    version(){return 'web';},
+    ocr(id){q=q.then(async()=>{const b=blobs[id];if(!b){window.onOcr(id,null,'Photo no longer in memory, add it again');return;}
+      try{window.onOcrStatus&&onOcrStatus(id,worker?'Reading…':'Loading reader…');const w=await loadTesseract();window.onOcrStatus&&onOcrStatus(id,'Reading…');
+        const {data}=await w.recognize(inkless(b.canvas));
+        const src=(data.lines&&data.lines.length?data.lines:data.words)||[];
+        window.onOcr(id,src.map(l=>({t:String(l.text||'').replace(/[|_]/g,' ').trim(),x:l.bbox.x0,y:l.bbox.y0,w:l.bbox.x1-l.bbox.x0,h:l.bbox.y1-l.bbox.y0})).filter(l=>l.t));
+      }catch(e){window.onOcr(id,null,e.message||'Text reading failed');}});},
+    claudeRead(id,key,model,prompt){(async()=>{const b=blobs[id];if(!b)return window.onClaude(id,false,'Photo no longer in memory, add it again');
+      try{const b64=await new Promise(r=>{const f=new FileReader();f.onload=()=>r(String(f.result).split(',')[1]);f.readAsDataURL(b.jpeg);});
+        const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model,max_tokens:4000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},{type:'text',text:prompt}]}]})});
+        const j=await res.json().catch(()=>({}));
+        if(!res.ok)return window.onClaude(id,false,'Claude: '+((j.error&&j.error.message)||('HTTP '+res.status)));
+        window.onClaude(id,true,(j.content||[]).filter(x=>x.type==='text').map(x=>x.text).join(''));
+      }catch(e){window.onClaude(id,false,'Network error: '+e.message);}})();},
+    async share(name,mime,text,subject){const file=new File([text],name,{type:mime});
+      try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:subject});return;}}catch(e){if(e.name==='AbortError')return;}
+      this.save(name,text);},
+    save(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/plain'}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);},
+    copy(text){navigator.clipboard?.writeText(text).catch(()=>{});},
+    open(url){window.open(url,'_blank','noopener');}
+  };}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,10);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let saved=store.get('b2p.saved',[]);           // [{id,name,created,updated,songs,cards}]
+let batch=store.get('b2p.draft',null);          // {id,name,songs:[{id,title,artist,cards}],cards:[{id,thumb,state,msg,label}]}
+let settings=Object.assign({engine:'device',key:'',model:'claude-sonnet-5-5'},store.get('b2p.settings',{}));
+let fmt='csv',sheetList=null,undo=null;
+
+function toast(t,undoFn){const e=$('#toast');e.textContent=t;e.classList.add('show');undo=undoFn||null;clearTimeout(e._t);e._t=setTimeout(()=>{e.classList.remove('show');undo=null},undoFn?4000:2200);}
+$('#toast').addEventListener('click',()=>{if(undo){undo();undo=null;$('#toast').classList.remove('show');}});
+
+// ---------- normalising & de-duplication ----------
+const strip=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function normTitle(t){return strip(t).replace(/\(.*?\)|\[.*?\]/g,' ').replace(/\b(feat|ft|featuring)\b.*$/,' ').replace(/&/g,' and ').replace(/['’`.]/g,'').replace(/[^a-z0-9]+/g,' ').replace(/^(the|a)\s+/,'').trim();}
+function normArtist(a){return strip(a).split(/\s*(?:,|&|\band\b|\bfeat\.?|\bft\.?|\bfeaturing\b|\bwith\b|\bx\b)\s*/)[0].replace(/['’`.\/-]/g,'').replace(/[^a-z0-9]+/g,' ').replace(/^the\s+/,'').trim();}
+const key=s=>normTitle(s.title)+'|'+normArtist(s.artist);
+function tidy(s){s=String(s||'').replace(/\s+/g,' ').trim();if(s!==s.toUpperCase()||!/[A-Z]/.test(s))return s;
+  const small=new Set(['a','an','and','as','at','but','by','for','in','of','on','or','the','to','vs']);
+  return s.toLowerCase().replace(/[a-z0-9'’]+/g,(w,i)=>/^(ii|iii|iv|usa|tnt|ac|dc|dj|mc|ymca|ok)$/.test(w)?w.toUpperCase():(i>0&&small.has(w))?w:w[0].toUpperCase()+w.slice(1))
+   .replace(/(^|[\/(\-] *)([a-z])/g,(m,p,c)=>p+c.toUpperCase()).replace(/\b([a-z])\.(?=[a-z]\.)/gi,m=>m.toUpperCase()).replace(/\.([a-z])/g,m=>m.toUpperCase());}
+function addSongs(list,label){let added=0,dups=0;
+  for(const s of list){const title=tidy(s.title),artist=String(s.artist||'').replace(/\s+/g,' ').trim();
+    if(!title||/free\s*space|music\s*bingo/i.test(title))continue;
+    const hit=batch.songs.find(x=>key(x)===key({title,artist}));
+    if(hit){if(label&&!hit.cards.includes(label))hit.cards.push(label);dups++;}
+    else{batch.songs.push({id:uid(),title,artist,cards:label?[label]:[]});added++;}}
+  return{added,dups};}
+function dedupe(){const seen=new Map();const n=batch.songs.length;
+  batch.songs=batch.songs.filter(s=>{if(!normTitle(s.title))return true;const k=key(s);if(seen.has(k)){const h=seen.get(k);s.cards.forEach(c=>h.cards.includes(c)||h.cards.push(c));return false;}seen.set(k,s);return true;});
+  return n-batch.songs.length;}
+
+// ---------- reading on the phone: rebuild the 5x5 grid from OCR line boxes ----------
+// group boxes into text lines (same height band), each read left to right
+function rows(items){const s=items.slice().sort((a,b)=>a.cy-b.cy),out=[];
+  for(const it of s){const r=out[out.length-1];
+    if(r&&Math.abs(it.cy-r.cy)<Math.max(r.h,it.h)*0.55){r.items.push(it);r.y=Math.min(r.y,it.y);r.h=Math.max(r.y+r.h,it.y+it.h)-r.y;r.cy=r.y+r.h/2;}
+    else out.push({items:[it],y:it.y,h:it.h,cy:it.cy});}
+  return out.map(r=>({t:r.items.sort((a,b)=>a.x-b.x).map(x=>x.t).join(' '),y:r.y,h:r.h}));}
+function parseGrid(lines,W,H){
+  const clean=lines.map(l=>({...l,t:String(l.t).trim(),cx:l.x+l.w/2,cy:l.y+l.h/2})).filter(l=>l.t);
+  let top=-1,cardTitle='';
+  for(const l of clean){if(l.y>H*0.45)continue;
+    const letters=l.t.replace(/[^A-Za-z]/g,'');
+    if(/^[BINGO]$/.test(letters)||/^B?I?N?G?O?$/.test(letters)&&letters.length>=3&&/[BINGO]{3,}/.test(letters)&&l.h>H*0.025)top=Math.max(top,l.y+l.h);
+    if(/bingo\.com|cerrito/i.test(l.t))top=Math.max(top,l.y+l.h);}
+  const heads=clean.filter(l=>l.y+l.h<=top&&!/bingo\.com|^[BINGO\s]+$/i.test(l.t));
+  if(heads.length)cardTitle=tidy(heads.map(h=>h.t).join(' '));
+  const body=clean.filter(l=>l.cy>top&&!/^(free\s*space|music|bingo|music\s*bingo)$/i.test(l.t));
+  if(body.length<5)return{cardTitle,songs:[]};
+  const x0=Math.min(...body.map(l=>l.x)),x1=Math.max(...body.map(l=>l.x+l.w));
+  const y0=Math.min(...body.map(l=>l.y)),y1=Math.max(...body.map(l=>l.y+l.h));
+  const cw=(x1-x0)/5,ch=(y1-y0)/5,cells=Array.from({length:25},()=>[]);
+  for(const l of body){const c=Math.max(0,Math.min(4,Math.floor((l.cx-x0)/cw))),r=Math.max(0,Math.min(4,Math.floor((l.cy-y0)/ch)));cells[r*5+c].push(l);}
+  const songs=[];
+  cells.forEach((raw,i)=>{if(!raw.length)return;const ls=rows(raw);
+    if(ls.some(l=>/free\s*space/i.test(l.t)))return;
+    let split=ls.length>1?1:ls.length,gap=-1e9;
+    for(let k=1;k<ls.length;k++){const g=ls[k].y-(ls[k-1].y+ls[k-1].h);if(g>gap){gap=g;split=k;}}
+    // if no clear gap, use letter case: titles are printed in capitals
+    if(ls.length>1&&gap<ls[0].h*0.6){const k=ls.findIndex((l,j)=>j>0&&l.t!==l.t.toUpperCase());if(k>0)split=k;}
+    const title=ls.slice(0,split).map(l=>l.t).join(' ');
+    const artist=ls.slice(split).map(l=>l.t).join(' ');
+    if(title.replace(/[^A-Za-z0-9]/g,'').length>=2)songs.push({title,artist});});
+  return{cardTitle,songs};}
+
+const PROMPT=`This photo shows a MUSIC BINGO card: a 5x5 grid where each square has a SONG TITLE (usually capitals, top of the square) and the ARTIST below it. The centre is a FREE SPACE: skip it. Ignore the header (game name, website, the letters B I N G O).
+Players mark squares with ink daubers, so text may be partly covered. Read what is visible and use your knowledge of popular music to reconstruct covered words. Give each song's real released title.
+Reply with ONLY this JSON and nothing else:
+{"card_title":"<game name printed at the top, or empty>","songs":[{"title":"...","artist":"..."}]}
+List squares row by row, left to right. If it is not a bingo card, return {"card_title":"","songs":[]}.`;
+
+// native callbacks
+const pending={};
+window.onImageStart=id=>{if(!batch)newBatch();else if($('#batch').hidden)show('batch');batch.cards.push({id,state:'reading',msg:'Reading…'});save();renderCards();};
+window.onImageError=(id,msg)=>{const c=card(id);if(c){c.state='err';c.msg=msg;save();renderCards();}toast(msg);};
+window.onImage=d=>{const c=card(d.id);if(!c)return;c.thumb=d.thumb;
+  pending[d.id]=d;
+  if(settings.engine==='claude'&&settings.key){c.msg='Asking Claude…';renderCards();A.claudeRead(d.id,settings.key,settings.model||'claude-sonnet-5-5',PROMPT);}
+  else readOnDevice(d);};
+function readOnDevice(d){if(d.lines)return finishCard(d.id,parseGrid(d.lines,d.w,d.h),'device');pending[d.id]=d;A.ocr(d.id);}
+window.onOcrStatus=(id,msg)=>{const c=card(id);if(c){c.msg=msg;renderCards();}};
+window.onOcr=(id,lines,err)=>{const d=pending[id];if(!d)return;
+  if(!lines){const c=card(id);delete pending[id];if(c){c.state='err';c.msg=err||'Couldn’t read';save();renderCards();}toast(err||'Couldn’t read that photo');return;}
+  d.lines=lines;finishCard(id,parseGrid(lines,d.w,d.h),'device');};
+window.onClaude=(id,ok,text)=>{const d=pending[id];if(!d)return;
+  if(ok){try{const m=String(text).match(/\{[\s\S]*\}/);const j=JSON.parse(m[0]);finishCard(id,{cardTitle:j.card_title||'',songs:Array.isArray(j.songs)?j.songs:[]},'Claude');return;}catch(e){}}
+  toast(ok?'Claude reply unreadable, using built-in reading':String(text).slice(0,80));
+  readOnDevice(d);};
+function card(id){return batch&&batch.cards.find(c=>c.id===id);}
+function finishCard(id,res,how){const c=card(id);delete pending[id];if(!c)return;
+  const n=batch.cards.filter(x=>x.state==='done').length+1;
+  c.label=(res.cardTitle||'').slice(0,40)||`Card ${n}`;
+  const r=addSongs(res.songs,c.label);
+  c.state=res.songs.length?'done':'err';
+  c.msg=res.songs.length?`${res.songs.length} found · ${r.added} new`:'No songs found';
+  save();renderCards();renderSongs();
+  toast(res.songs.length?`${c.label}: +${r.added} songs${r.dups?`, ${r.dups} dupes skipped`:''}`:'Couldn’t find songs on that photo');}
+
+// ---------- screens ----------
+function show(view){$('#home').hidden=view!=='home';$('#batch').hidden=view!=='batch';$('#bar').hidden=view!=='batch';
+  $('#backBtn').hidden=view==='home';$('#title').textContent=view==='home'?'BINGO2PLAYLIST':'BATCH';
+  if(view==='home')renderHome();else{$('#bname').value=batch.name;$('#discard').textContent=batch.editing?'🗑 Delete':'Discard';renderCards();renderSongs();}window.scrollTo(0,0);}
+const today=()=>new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+function newBatch(){batch={id:uid(),name:`Bingo night – ${today()}`,songs:[],cards:[],editing:null};save();show('batch');}
+function save(){store.set('b2p.draft',batch);}
+
+function renderHome(){
+  $('#resume').hidden=!(batch&&(batch.songs.length||batch.cards.length));
+  $('#saved').innerHTML=saved.length?saved.slice().sort((a,b)=>b.updated-a.updated).map(p=>`<div class="item" data-id="${p.id}">
+    <div class="grow"><b>${esc(p.name)}</b><small>${p.songs.length} songs · ${p.cardCount||0} cards · ${new Date(p.updated).toLocaleDateString()}</small></div>
+    <div class="acts"><button class="small" data-act="share">Share</button><button class="small" data-act="open">Edit</button><button class="small del" data-act="del" aria-label="Delete ${esc(p.name)}">🗑</button></div></div>`).join('')
+   :'<div class="empty">No playlists yet. Start a batch, photograph your cards, then tap “Save &amp; share”.</div>';}
+$('#saved').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const p=saved.find(x=>x.id===b.closest('.item').dataset.id);if(!p)return;
+  if(b.dataset.act==='share')openShare(p,false);
+  if(b.dataset.act==='del'){if(await ask('Delete playlist?',`“${p.name}” (${p.songs.length} songs) will be removed from this phone.`,'Delete')){removeSaved(p.id);if(batch&&batch.editing===p.id){batch=null;store.set('b2p.draft',null);}renderHome();toast('Playlist deleted');}return;}
+  if(b.dataset.act==='open'){if(batch&&batch.songs.length&&!batch.editing&&!await ask('Replace unfinished batch?','Your unfinished batch will be thrown away.','Replace'))return;
+    batch={id:uid(),name:p.name,songs:JSON.parse(JSON.stringify(p.songs)),cards:[],editing:p.id,cardCount:p.cardCount||0};save();show('batch');}});
+let dlgDone=null;
+function ask(title,msg,ok){$('#dlgT').textContent=title;$('#dlgM').textContent=msg;$('#dlgYes').textContent=ok;$('#dlg').hidden=false;
+  return new Promise(r=>{dlgDone=v=>{$('#dlg').hidden=true;dlgDone=null;r(v);};});}
+$('#dlgYes').addEventListener('click',()=>dlgDone&&dlgDone(true));
+$('#dlgNo').addEventListener('click',()=>dlgDone&&dlgDone(false));
+$('#dlg').addEventListener('click',e=>{if(e.target.id==='dlg'&&dlgDone)dlgDone(false);});
+function removeSaved(id){saved=saved.filter(x=>x.id!==id);store.set('b2p.saved',saved);}
+
+$('#newBatch').addEventListener('click',async()=>{if(batch&&(batch.songs.length||batch.cards.length)&&!await ask('Start fresh?','You have an unfinished batch. Starting a new one throws it away.','Start new'))return;newBatch();});
+$('#resumeBtn').addEventListener('click',()=>show('batch'));
+$('#backBtn').addEventListener('click',()=>{if(!$('#shareSheet').hidden||!$('#setSheet').hidden){closeSheets();return;}show('home');});
+window.onBack=()=>{if(dlgDone){dlgDone(false);return true;}if(!$('#shareSheet').hidden||!$('#setSheet').hidden){closeSheets();return true;}if(!$('#batch').hidden){show('home');return true;}return false;};
+$('#bname').addEventListener('input',e=>{batch.name=e.target.value;save();});
+
+$('#camBtn').addEventListener('click',()=>{if(!A)return toast('Camera works in the Android app');A.takePhoto(true);});
+$('#galBtn').addEventListener('click',()=>{if(!A)return toast('Gallery works in the Android app');A.pickImages();});
+window.onCameraDone=()=>{const n=batch?batch.cards.length:0;if(n)toast(`${n} card${n===1?'':'s'} in this batch`);};
+
+function renderCards(){if(!batch)return;$('#cards').innerHTML=batch.cards.map(c=>`<div class="card ${c.state}">${c.thumb?`<img src="${c.thumb}" alt="">`:`<div class="ph"><div class="spin"></div></div>`}<div>${esc(c.msg||'')}</div></div>`).join('');
+  $('#camNote').hidden=batch.cards.length>0;}
+function renderSongs(){const s=batch.songs;
+  $('#count').innerHTML=s.length?`<em>${s.length}</em> unique song${s.length===1?'':'s'}`:'No songs yet';
+  $('#songs').innerHTML=s.length?s.map((x,i)=>`<div class="song" data-id="${x.id}"><span class="n">${i+1}</span>
+    <input class="t" data-k="title" value="${esc(x.title)}" aria-label="Title" placeholder="Title">
+    <span class="acts"><button class="small" data-act="find" aria-label="Find in Spotify">Find</button><button class="small" data-act="del" aria-label="Remove">✕</button></span>
+    <input data-k="artist" value="${esc(x.artist)}" aria-label="Artist" placeholder="Artist">${x.cards.length>1?`<span class="tag" style="grid-column:2">on ${x.cards.length} cards</span>`:''}</div>`).join('')
+   :'<div class="empty">Take photos of your cards and the songs will appear here.</div>';
+  $('#finish').disabled=!s.length;}
+$('#songs').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;const x=batch.songs.find(y=>y.id===e.target.closest('.song').dataset.id);if(x){x[k]=e.target.value;save();}});
+$('#songs').addEventListener('change',e=>{if(e.target.dataset.k&&dedupe()){save();renderSongs();toast('Merged a duplicate');}});
+$('#songs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const row=b.closest('.song');const i=batch.songs.findIndex(y=>y.id===row.dataset.id);const x=batch.songs[i];
+  if(b.dataset.act==='find'){const u='https://open.spotify.com/search/'+encodeURIComponent(`${x.title} ${x.artist}`.trim());A?A.open(u):window.open(u);}
+  if(b.dataset.act==='del'){batch.songs.splice(i,1);save();renderSongs();toast('Song removed · tap to undo',()=>{batch.songs.splice(i,0,x);save();renderSongs();});}});
+$('#addSong').addEventListener('click',()=>{batch.songs.push({id:uid(),title:'',artist:'',cards:[]});save();renderSongs();const ins=document.querySelectorAll('#songs input[data-k=title]');ins[ins.length-1]?.focus();});
+$('#sortBtn').addEventListener('click',()=>{batch.songs.sort((a,b)=>normTitle(a.title).localeCompare(normTitle(b.title)));save();renderSongs();});
+$('#discard').addEventListener('click',async()=>{
+  const ed=batch.editing&&saved.find(x=>x.id===batch.editing);
+  const ok=ed?await ask('Delete playlist?',`“${ed.name}” will be removed from this phone.`,'Delete')
+             :await ask('Discard this batch?',`${batch.songs.length} songs and ${batch.cards.length} photos will be thrown away.`,'Discard');
+  if(!ok)return;
+  if(ed)removeSaved(ed.id);
+  (batch.cards||[]).forEach(c=>A&&A.forget&&A.forget(c.id));
+  batch=null;store.set('b2p.draft',null);show('home');toast(ed?'Playlist deleted':'Batch discarded');});
+
+$('#finish').addEventListener('click',()=>{dedupe();
+  const songs=batch.songs.filter(s=>s.title.trim()).map(s=>({...s,title:s.title.trim(),artist:s.artist.trim()}));
+  if(!songs.length)return toast('No songs to save');
+  const name=(batch.name||'').trim()||`Bingo night – ${today()}`;
+  const cardCount=(batch.cardCount||0)+batch.cards.filter(c=>c.state==='done').length;
+  let p=batch.editing&&saved.find(x=>x.id===batch.editing);
+  if(p){Object.assign(p,{name,songs,cardCount,updated:Date.now()});}
+  else{p={id:uid(),name,songs,cardCount,created:Date.now(),updated:Date.now()};saved.push(p);}
+  store.set('b2p.saved',saved);
+  batch.cards.forEach(c=>A&&A.forget&&A.forget(c.id));
+  batch=null;store.set('b2p.draft',null);show('home');openShare(p,true);});
+
+// ---------- export & share ----------
+const csvCell=v=>/[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;
+function build(p,f){const s=p.songs;
+  if(f==='csv')return['Track name,Artist name',...s.map(x=>csvCell(x.title)+','+csvCell(x.artist))].join('\n');
+  if(f==='txt')return s.map(x=>x.artist?`${x.artist} - ${x.title}`:x.title).join('\n');
+  return['#EXTM3U',`#PLAYLIST:${p.name}`,...s.flatMap(x=>[`#EXTINF:-1,${x.artist} - ${x.title}`,`${x.artist} - ${x.title}.mp3`])].join('\n');}
+const fname=(p,f)=>`${p.name.replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-')||'playlist'}.${f}`;
+const mime={csv:'text/csv',txt:'text/plain',m3u:'audio/x-mpegurl'};
+function openShare(p,justSaved){sheetList=p;$('#shTitle').textContent=justSaved?'Playlist saved':p.name;
+  $('#shSub').textContent=`${justSaved?p.name+' · ':''}${p.songs.length} songs. Share it, save the file, or import it into Spotify.`;$('#shareSheet').hidden=false;}
+function closeSheets(){$('#shareSheet').hidden=true;$('#setSheet').hidden=true;}
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{fmt=b.dataset.f;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));}));
+$('#shShare').addEventListener('click',()=>{const p=sheetList;if(!p)return;const t=build(p,fmt);A?A.share(fname(p,fmt),fmt==='txt'?'text/plain':mime[fmt],t,p.name):navigator.clipboard?.writeText(t);});
+$('#shSave').addEventListener('click',()=>{const p=sheetList;if(!p)return;A?A.save(fname(p,fmt),build(p,fmt)):toast('Saving works in the Android app');});
+$('#shCopy').addEventListener('click',()=>{const p=sheetList;if(!p)return;const t=build(p,fmt);A?A.copy(t):navigator.clipboard?.writeText(t);toast('Copied');});
+$('#shTmm').addEventListener('click',()=>{const u='https://www.tunemymusic.com/transfer';A?A.open(u):window.open(u);});
+$('#shClose').addEventListener('click',closeSheets);
+$('#shareSheet').addEventListener('click',e=>{if(e.target.id==='shareSheet')closeSheets();});
+
+// ---------- settings ----------
+function syncSettingsUI(){$('#engine').value=settings.engine;$('#apikey').value=settings.key;$('#model').value=settings.model;$('#claudeOpts').hidden=settings.engine!=='claude';
+  $('#ver').textContent=A&&A.version?`App version ${A.version()}`:'';}
+$('#setBtn').addEventListener('click',()=>{syncSettingsUI();$('#setSheet').hidden=false;});
+$('#engine').addEventListener('change',e=>{$('#claudeOpts').hidden=e.target.value!=='claude';});
+$('#setClose').addEventListener('click',()=>{settings={engine:$('#engine').value,key:$('#apikey').value.trim(),model:$('#model').value.trim()||'claude-sonnet-5-5'};
+  if(settings.engine==='claude'&&!settings.key)toast('Add an API key to use Claude');
+  store.set('b2p.settings',settings);closeSheets();});
+$('#setSheet').addEventListener('click',e=>{if(e.target.id==='setSheet')closeSheets();});
+
+if(!NATIVE){$('#camNote').textContent='Tap Camera for each card (on a phone it opens the camera), or pick several photos with Gallery.';
+  $('#engine').options[0].textContent='In this browser (free)';}
+// restore: photos still "reading" when the app was closed can't finish
+if(batch)batch.cards.forEach(c=>{if(c.state==='reading'){c.state='err';c.msg='Interrupted, retake';}});
+show('home');
+}
+</script>
+</body>
+</html>

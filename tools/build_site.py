@@ -181,6 +181,11 @@ APPS = [
         effective="November 24, 2026",
         # Side-loaded app: the APK is built by GitHub Actions in the app's repo and published as a release.
         apk="https://github.com/randaladams/bingo2playlist/releases/latest/download/bingo2playlist.apk",
+        play=True, play_offline=False,  # runs in the browser at /apps/bingo2playlist/play/ (copied from the app's assets/index.html)
+        play_label="Open in your browser",
+        play_note="Works on phones and computers. On a phone, Camera opens your camera; on a computer, pick photos of your cards.",
+        play_privacy="""<p>Bingo2Playlist also runs in a web browser at <a href="/apps/bingo2playlist/play/">adamselite.com/apps/bingo2playlist/play/</a>. It works the same way as the app: your photos are processed in your browser, and your playlists, unfinished batch and settings are saved only in your browser's own storage on your device. Nothing is sent to us. You can erase them by clearing this site's data in your browser.</p>
+<p>The first time you read a card, the page loads the free <a href="https://github.com/naptha/tesseract.js">Tesseract.js</a> text-recognition software and its English language data from public code servers such as jsDelivr. Those servers see a normal web request, such as your IP address, but not your photos; reading happens in your browser. If you turn on Claude reading, photos go from your browser directly to Anthropic as described above. The website is hosted by GitHub Pages, which, like any web host, may log technical details of requests to load the page; see the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>.</p>""",
         tagline="Photograph your music bingo cards and turn every song on them into one playlist.",
         features=[
             "Start a batch and snap card after card: the camera reopens after each photo.",
@@ -248,9 +253,14 @@ def play_buttons(a):
     if not a.get("play"):
         return ""
     href = f"/apps/{a['slug']}/play/"
-    return f"""<p class="actions"><a class="button" href="{href}">Play in your browser</a>
+    label = a.get("play_label", "Play in your browser")
+    if a.get("play_offline", True):
+        return f"""<p class="actions"><a class="button" href="{href}">{label}</a>
 <a class="button ghost" href="{href}index.html" download="{html.escape(a['name'])}.html">Download to play offline</a></p>
 <p class="note">The download is the whole game in one file. Open it in any browser, no internet needed.</p>
+"""
+    return f"""<p class="actions"><a class="button" href="{href}">{label}</a></p>
+<p class="note">{a.get("play_note", "")}</p>
 """
 
 def apk_buttons(a):
@@ -336,7 +346,9 @@ def privacy_page(a):
         s.append(f"""<h2>Purchases</h2>
 <p>The optional {html.escape(purchase[0])} upgrade is sold through Google Play to {purchase[1]}. Google processes the payment and tells the app only whether you own it, so it can be restored after a reinstall. We don't receive your name, payment card or billing details. See the <a href="{GOOGLE_PRIVACY}">Google Privacy Policy</a>.</p>""")
 
-    if a.get("play"):
+    if a.get("play_privacy"):
+        s.append("<h2>Using it in a web browser</h2>\n" + a["play_privacy"])
+    elif a.get("play"):
         s.append(f"""<h2>Playing in a web browser</h2>
 <p>{n} can also be played in a web browser at <a href="/apps/{a['slug']}/play/">adamselite.com/apps/{a['slug']}/play/</a>, or from a copy of that page saved on your computer. The browser version works the same way: your win/loss record and settings are saved only in your browser's own storage on your device, and nothing is sent to us. You can erase them by clearing this site's data in your browser. The website is hosted by GitHub Pages, which, like any web host, may log technical details of requests to load the page, such as your IP address; see the <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub Privacy Statement</a>. The game page loads nothing from any other site.</p>""")
 

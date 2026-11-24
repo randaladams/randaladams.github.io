@@ -31,3 +31,5 @@ Notes:
   Download buttons, a Web tag on the home page, and a browser section in their privacy policy.
 - Apps with `apk=` in `APPS` (Bingo2Playlist) are side-loaded rather than on Google Play: their page gets a
   Download APK button pointing at the newest GitHub release of the app's own repository.
+- `/apps/bingo2playlist/play/index.html` is the Bingo2Playlist app itself, copied from `app/src/main/assets/index.html` in the
+  bingo2playlist repository (the same screen runs in the Android app and the browser). Copy it again after changing the app.
