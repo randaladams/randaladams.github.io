@@ -9,7 +9,7 @@ Website for adamselite.com games and apps, published with GitHub Pages at https:
 | `/apps/<app>/` | An app's page |
 | `/apps/<app>/privacy/` | That app's privacy policy (use this URL in the Play Console) |
 
-Apps: ophelia, sling-slam, trench-run, horizon-run, stop-time, how-far-is-graceland, inner-circle, tuts-trumpets.
+Apps: ophelia, sling-slam, trench-run, horizon-run, stop-time, how-far-is-graceland, inner-circle, tuts-trumpets, bingo2playlist.
 
 ## Editing
 
@@ -29,3 +29,5 @@ Notes:
 - `/apps/ophelia/play/index.html` is the Ophelia game itself, copied from `app/src/main/assets/index.html` in the
   Ophelia repository. Copy it again after changing the game. Apps with `play=True` in `APPS` get Play and
   Download buttons, a Web tag on the home page, and a browser section in their privacy policy.
+- Apps with `apk=` in `APPS` (Bingo2Playlist) are side-loaded rather than on Google Play: their page gets a
+  Download APK button pointing at the newest GitHub release of the app's own repository.

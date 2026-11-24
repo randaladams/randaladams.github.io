@@ -175,6 +175,39 @@ APPS = [
         links_out=True,
         ads=None, consent=None, purchase=None,
     ),
+    dict(
+        slug="bingo2playlist", name="Bingo2Playlist", package="com.randaladams.bingo2playlist",
+        icon="bingo2playlist-icon.png", repo="bingo2playlist",
+        effective="November 24, 2026",
+        # Side-loaded app: the APK is built by GitHub Actions in the app's repo and published as a release.
+        apk="https://github.com/randaladams/bingo2playlist/releases/latest/download/bingo2playlist.apk",
+        tagline="Photograph your music bingo cards and turn every song on them into one playlist.",
+        features=[
+            "Start a batch and snap card after card: the camera reopens after each photo.",
+            "Song titles and artists are read from each card, even through dauber ink.",
+            "Songs from every card merge into one list, with duplicates removed automatically.",
+            "Fix any title, add or remove songs, then save the playlist on your phone.",
+            "Share or save it as a CSV for importing into Spotify (with TuneMyMusic or Soundiiz), a text list or an M3U file.",
+            "Tap Find next to any song to open it in Spotify.",
+        ],
+        local_data="your saved playlists, any unfinished batch and your settings (including an Anthropic API key, if you enter one)",
+        erase="with the delete button on each saved playlist, by clearing the app's data in your phone's settings, or by uninstalling the app",
+        device=[
+            "<strong>Camera</strong>: the Camera button opens your phone's own camera app to photograph a card. The app has no camera permission of its own.",
+            "<strong>Photos</strong>: the Gallery button uses Android's photo picker, so the app sees only the photos you choose.",
+            "<strong>Text recognition on your phone</strong>: by default, cards are read on your device with Google ML Kit. Your photos and the text read from them stay on your phone. "
+            "ML Kit does send Google performance and usage metrics (such as device model, OS version and processing time), as described in the <a href=\"https://developers.google.com/ml-kit/terms\">ML Kit terms</a>.",
+            "<strong>Sharing and saving</strong>: playlists leave your phone only when you share or save them, to the app or place you choose.",
+            "<strong>Links</strong>: <strong>Find</strong> and the TuneMyMusic button open Spotify or the TuneMyMusic website. Those services have their own privacy policies.",
+        ],
+        internet="<strong>Internet access</strong> is used only if you turn on Claude reading (below), and by Google ML Kit for the metrics described above.",
+        extra=[("Optional Claude reading",
+            "<p>In <strong>Settings</strong> you can choose to have cards read by Claude, an AI model from Anthropic, using your own Anthropic API key. "
+            "When this is on, each card photo you add is sent directly from your phone to Anthropic's API to be read; it does not pass through us. "
+            "Your API key is stored only on your phone. Anthropic handles these photos under its own terms and "
+            "<a href=\"https://www.anthropic.com/legal/privacy\">privacy policy</a>. This option is off unless you turn it on.</p>")],
+        ads=None, consent=None, purchase=None,
+    ),
 ]
 
 # ----------------------------------------------------------------------------- page parts
@@ -199,7 +232,7 @@ def page(title, desc, body, nav):
 def home():
     cards = "\n".join(f"""<a class="card" href="/apps/{a['slug']}/">
   <img src="/assets/{a['icon']}" alt="{html.escape(a['name'])} icon" width="96" height="96">
-  <div><h3>{html.escape(a['name'])}</h3><p>{html.escape(a['tagline'])}</p><span class="tag">Android</span>{'<span class="tag web">Web</span>' if a.get('play') else ''}</div>
+  <div><h3>{html.escape(a['name'])}</h3><p>{html.escape(a['tagline'])}</p><span class="tag">Android</span>{'<span class="tag web">Web</span>' if a.get('play') else ''}{'<span class="tag web">APK</span>' if a.get('apk') else ''}</div>
 </a>""" for a in APPS)
     body = f"""<h1>Games &amp; apps</h1>
 <p class="lead">Mobile games and apps by adamselite.com.</p>
@@ -220,11 +253,21 @@ def play_buttons(a):
 <p class="note">The download is the whole game in one file. Open it in any browser, no internet needed.</p>
 """
 
+def apk_buttons(a):
+    if not a.get("apk"):
+        return ""
+    return f"""<p class="actions"><a class="button" href="{a['apk']}">Download for Android (APK)</a>
+<a class="button ghost" href="https://github.com/randaladams/{a['repo']}">Source code</a></p>
+<div class="note"><strong>Installing:</strong> open this page on your Android phone (Android 9 or newer) and tap <strong>Download</strong>.
+Open the downloaded file and, when Android asks, allow your browser to install unknown apps. This app isn't on Google Play;
+new versions install over the old one and keep your playlists.</div>
+"""
+
 def app_page(a):
     feats = "\n".join(f"<li>{html.escape(f)}</li>" for f in a["features"])
     body = f"""<div class="hero"><img src="/assets/{a['icon']}" alt="{html.escape(a['name'])} icon" width="128" height="128">
 <div><h1>{html.escape(a['name'])}</h1><p class="lead">{html.escape(a['tagline'])}</p></div></div>
-{play_buttons(a)}<ul>
+{play_buttons(a)}{apk_buttons(a)}<ul>
 {feats}
 </ul>
 <h2>Support</h2>
@@ -249,6 +292,8 @@ def privacy_page(a):
         short.append(f"The optional {html.escape(purchase[0])} purchase is handled by Google Play. We never see your payment details.")
     if offline:
         short.append("The app doesn't connect to the internet, shows no ads and has no purchases.")
+    if a.get("internet"):
+        short.append("The app shows no ads and has no purchases. Card photos stay on your phone unless you turn on Claude reading.")
 
     s = [f"""<h1>{n} Privacy Policy</h1>
 <p class="lead">Effective {a.get('effective', EFFECTIVE)}</p>
@@ -266,7 +311,9 @@ def privacy_page(a):
     dev = list(a["device"])
     if a.get("links_out"):
         dev.append("<strong>Links</strong>: the info screen can open web pages (Wikipedia and the BBC) in your browser. Those sites have their own privacy policies.")
-    if offline:
+    if a.get("internet"):
+        dev.append(a["internet"])
+    elif offline:
         dev.append("<strong>No internet access</strong>: the app does not request internet permission, so it cannot send anything off your device.")
     else:
         dev.append("<strong>Internet access</strong> is used only to load ads in the free version and to process purchases through Google Play." if purchase
@@ -281,6 +328,9 @@ def privacy_page(a):
 {consent}<p>You can reset your advertising ID or opt out of ad personalization in your device's settings (Settings &rarr; Google &rarr; Ads, or Settings &rarr; Privacy &rarr; Ads, depending on your device).</p>""")
         if purchase:
             s.append(f"<p>Once you own {html.escape(purchase[0])}, the app no longer shows ads.</p>")
+
+    for head, body in a.get("extra", []):
+        s.append(f"<h2>{head}</h2>\n{body}")
 
     if purchase:
         s.append(f"""<h2>Purchases</h2>
